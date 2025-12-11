@@ -8,8 +8,8 @@ pub struct ProjArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum Action {
-    /// Listen for events on a compositor's socket
-    Listen(Listen),
+    /// Listen for events on the active compositor's socket
+    Listen,
     /// Cpu usage %
     Cpu,
     /// Memory usage %
@@ -29,10 +29,4 @@ pub enum Action {
 #[derive(Debug, Args)]
 pub struct PathObj {
     pub path: String,
-}
-
-#[derive(Debug, Args)]
-pub struct Listen {
-    /// Niri
-    pub compositor: String,
 }

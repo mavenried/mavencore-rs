@@ -3,8 +3,14 @@ use std::fs::read_to_string;
 use std::process::Command;
 use std::{fs, thread, time::Duration};
 
+// <-Modules-------------------->
+mod hyprland;
 mod niri;
+mod types;
+pub use hyprland::handle_hyprland;
 pub use niri::handle_niri;
+pub use types::State;
+
 // <-Helpers-------------------->
 fn read_cpu() -> (u64, u64) {
     let stat = fs::read_to_string("/proc/stat").unwrap();
@@ -40,7 +46,7 @@ fn get_battery(battery: &PathObj) -> f64 {
 
 fn is_charging(battery: &PathObj) -> bool {
     if let Ok(status) = fs::read_to_string(format!("{}/status", battery.path)) {
-        return status == "Charging";
+        return status.trim() == "Charging";
     }
     true // showing charging when not is more likely to get noticed.
 }

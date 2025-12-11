@@ -1,15 +1,8 @@
+use super::State;
 use niri_ipc::{
     Request,
     state::{EventStreamState, EventStreamStatePart},
 };
-use serde::Serialize;
-
-#[derive(Serialize)]
-struct State {
-    workspaces: Vec<usize>,
-    workspace_id: usize,
-    window_name: String,
-}
 
 impl From<&EventStreamState> for State {
     fn from(value: &EventStreamState) -> Self {

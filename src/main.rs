@@ -9,13 +9,21 @@ fn main() {
     let args = ProjArgs::parse();
 
     match args.action {
-        Action::Listen(listen) => match listen.compositor.as_str() {
+        Action::Listen => match std::env::var("DESKTOP_SESSION")
+            .expect("Failed to load $DESKTOP_SESSION")
+            .as_str()
+        {
             "niri" => {
                 if let Err(e) = handle_niri() {
                     eprintln!("{e}")
                 }
             }
-            _ => eprint!("Not Supported!"),
+            "hyprland" => {
+                if let Err(e) = handle_hyprland() {
+                    eprintln!("{e}")
+                }
+            }
+            compositor => eprintln!("{compositor} is not supported yet! :("),
         },
         Action::Cpu => handle_cpu(),
         Action::Memory => handle_memory(),
