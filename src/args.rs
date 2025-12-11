@@ -10,18 +10,19 @@ pub struct ProjArgs {
 pub enum Action {
     /// Listen for events on a compositor's socket
     Listen(Listen),
-
     /// Cpu usage %
     Cpu,
-    /// Cpu usage %
+    /// Memory usage %
     Memory,
-    /// Disk usage % <path>
+    /// Uptime in dd:hh:mm:ss
+    Uptime,
+    /// Disk usage %, takes <path> eg. /
     Disk(PathObj),
-    /// Battery % <battery path> eg. /sys/class/power_supply/BAT1
+    /// Battery %, takes <battery path> eg. /sys/class/power_supply/BAT1
     Battery(PathObj),
-    /// Battery % <battery path> eg. /sys/class/power_supply/BAT1
+    /// Battery Icon, takes <battery path> eg. /sys/class/power_supply/BAT1
     BatteryIcon(PathObj),
-    /// Power consumption in Watts <battery path> eg. /sys/class/power_supply/BAT1
+    /// Power consumption in Watts, takes <battery path> eg. /sys/class/power_supply/BAT1
     Power(PathObj),
 }
 

@@ -19,6 +19,8 @@ fn main() {
         },
         Action::Cpu => handle_cpu(),
         Action::Memory => handle_memory(),
+        Action::Uptime => handle_uptime(),
+
         Action::Disk(disk) => handle_disk(disk),
         Action::Battery(battery) => handle_battery(battery),
         Action::BatteryIcon(battery) => handle_battery_icon(battery),

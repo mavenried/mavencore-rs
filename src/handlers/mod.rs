@@ -1,4 +1,5 @@
 use crate::args::PathObj;
+use std::fs::read_to_string;
 use std::process::Command;
 use std::{fs, thread, time::Duration};
 
@@ -119,7 +120,7 @@ pub fn handle_battery_icon(battery: PathObj) {
         } else if is_charging(&battery) {
             '󰂄'
         } else {
-            let idx = pct as usize / 10;
+            let idx = ((pct - 0.1) as usize / 10) % 10;
             icons[idx]
         }
     };
@@ -136,4 +137,20 @@ pub fn handle_power(battery: PathObj) {
         }
         Err(_) => println!("?"),
     }
+}
+
+pub fn handle_uptime() {
+    let uptime_seconds: usize = read_to_string("/proc/uptime")
+        .unwrap()
+        .split(" ")
+        .next()
+        .unwrap()
+        .parse::<f32>()
+        .unwrap() as usize;
+    let uptime_hours = (uptime_seconds / 3600) % 24;
+    let uptime_days = uptime_seconds / 86400;
+    let uptime_min = (uptime_seconds / 60) % 60;
+    let uptime_seconds = uptime_seconds % 60;
+
+    println!("{uptime_days:0>2}:{uptime_hours:0>2}:{uptime_min:0>2}:{uptime_seconds:0>2}");
 }
