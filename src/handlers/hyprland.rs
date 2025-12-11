@@ -43,11 +43,11 @@ pub fn handle_hyprland() -> std::io::Result<()> {
     let mut reader = BufReader::new(socket);
     let mut state = State::default();
 
+    // active ws
     {
         let mut init = UnixStream::connect(sock.clone())?;
         let mut buf = String::new();
 
-        // active ws
         init.write_all(b"j/activeworkspace")?;
         init.read_to_string(&mut buf)?;
         if let Some(ws) = buf
@@ -60,11 +60,13 @@ pub fn handle_hyprland() -> std::io::Result<()> {
             state.workspaces.push(ws);
             println!("{}", serde_json::to_string(&state).unwrap())
         }
+    }
 
+    // active window title
+    {
         let mut init = UnixStream::connect(sock)?;
+        let mut buf = String::new();
 
-        // active window title
-        buf.clear();
         init.write_all(b"/activewindow")?;
         init.read_to_string(&mut buf)?;
         if let Some(t) = buf.lines().find_map(|l| l.trim().strip_prefix("title: ")) {
@@ -77,17 +79,17 @@ pub fn handle_hyprland() -> std::io::Result<()> {
         let mut line = String::new();
         reader.read_line(&mut line)?;
         let mut split = line.split(">>");
-        let event = split.next().unwrap();
-        let data = split.next().unwrap();
+        let event = split.next().unwrap_or("");
+        let data = split.next().unwrap_or("");
 
         match event {
             "activewindow" => {
                 state.window_name = {
                     let wn = data.split(",").nth(1).unwrap_or("").trim();
                     if wn.is_empty() {
-                        "desktop".to_string()
+                        "desktop".into()
                     } else {
-                        wn.to_string()
+                        wn.into()
                     }
                 };
                 println!("{}", serde_json::to_string(&state).unwrap())
@@ -101,7 +103,7 @@ pub fn handle_hyprland() -> std::io::Result<()> {
                 }
                 println!("{}", serde_json::to_string(&state).unwrap())
             }
-            &_ => (),
+            _ => (),
         }
     }
 }
