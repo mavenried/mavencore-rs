@@ -4,9 +4,11 @@ use std::process::Command;
 use std::{fs, thread, time::Duration};
 
 // <-Modules-------------------->
+mod apps_list;
 mod hyprland;
 mod niri;
 mod types;
+pub use apps_list::handle_apps_list;
 pub use hyprland::handle_hyprland;
 pub use niri::handle_niri;
 pub use types::State;

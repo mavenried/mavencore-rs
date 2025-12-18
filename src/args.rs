@@ -24,6 +24,7 @@ pub enum Action {
     BatteryIcon(PathObj),
     /// Power consumption in Watts, takes <battery path> eg. /sys/class/power_supply/BAT1
     Power(PathObj),
+    AppsList,
 }
 
 #[derive(Debug, Args)]

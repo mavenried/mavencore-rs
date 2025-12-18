@@ -9,8 +9,8 @@ fn main() {
     let args = ProjArgs::parse();
 
     match args.action {
-        Action::Listen => match std::env::var("DESKTOP_SESSION")
-            .expect("Failed to load $DESKTOP_SESSION")
+        Action::Listen => match std::env::var("XDG_CURRENT_DESKTOP")
+            .expect("Failed to load $XDG_CURRENT_DESKTOP")
             .as_str()
         {
             "niri" => {
@@ -33,5 +33,7 @@ fn main() {
         Action::Battery(battery) => handle_battery(battery),
         Action::BatteryIcon(battery) => handle_battery_icon(battery),
         Action::Power(battery) => handle_power(battery),
+
+        Action::AppsList => handle_apps_list(),
     }
 }

@@ -6,3 +6,10 @@ pub struct State {
     pub workspace_id: usize,
     pub window_name: String,
 }
+
+#[derive(Serialize)]
+pub struct DesktopEntry {
+    pub name: String,
+    pub icon: Option<String>,
+    pub path: String,
+}
