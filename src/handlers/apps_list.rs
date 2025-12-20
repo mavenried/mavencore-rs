@@ -60,13 +60,22 @@ pub fn handle_apps_list() {
         .split(':')
         .map(|s| s.to_string())
         .collect();
-
-    let dirs: Vec<PathBuf> = std::env::var("XDG_DATA_DIRS")
+    let mut dirs: Vec<PathBuf> = std::env::var("XDG_DATA_DIRS")
         .unwrap_or_default()
         .split(':')
         .map(PathBuf::from)
         .map(|p| p.join("applications"))
         .collect();
+
+    if let Ok(home) = std::env::var("HOME") {
+        let home = PathBuf::from(home);
+        let extras_dirs = vec![home.join(".local/share/applications")];
+        for extra_dir in extras_dirs {
+            if !dirs.contains(&extra_dir) {
+                dirs.push(extra_dir)
+            }
+        }
+    }
 
     for dir in dirs {
         for entry in WalkDir::new(dir)
