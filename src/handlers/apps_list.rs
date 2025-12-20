@@ -1,6 +1,6 @@
 use super::types::DesktopEntry;
 use configparser::ini::Ini;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn parse_desktop(path: &Path, desktops: &[String]) -> Option<DesktopEntry> {
@@ -61,14 +61,12 @@ pub fn handle_apps_list() {
         .map(|s| s.to_string())
         .collect();
 
-    let dirs = [
-        "/usr/share/applications",
-        "/usr/local/share/applications",
-        &format!(
-            "{}/.local/share/applications",
-            std::env::var("HOME").unwrap()
-        ),
-    ];
+    let dirs: Vec<PathBuf> = std::env::var("XDG_DATA_DIRS")
+        .unwrap_or_default()
+        .split(':')
+        .map(PathBuf::from)
+        .map(|p| p.join("applications"))
+        .collect();
 
     for dir in dirs {
         for entry in WalkDir::new(dir)

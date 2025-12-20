@@ -11,6 +11,7 @@ fn main() {
     match args.action {
         Action::Listen => match std::env::var("XDG_CURRENT_DESKTOP")
             .expect("Failed to load $XDG_CURRENT_DESKTOP")
+            .to_lowercase()
             .as_str()
         {
             "niri" => {
