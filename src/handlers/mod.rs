@@ -1,6 +1,5 @@
-use crate::args::PathObj;
+use crate::args::PathArg;
 use std::fs::read_to_string;
-use std::process::Command;
 use std::{fs, thread, time::Duration};
 
 // <-Modules-------------------->
@@ -15,8 +14,8 @@ pub use types::State;
 
 // <-Helpers-------------------->
 fn read_cpu() -> (u64, u64) {
-    let stat = fs::read_to_string("/proc/stat").unwrap();
-    let line = stat.lines().next().unwrap();
+    let stat = fs::read_to_string("/proc/stat").expect("/proc/stat unreadable");
+    let line = stat.lines().next().expect("empty /proc/stat");
     let parts: Vec<&str> = line.split_whitespace().collect();
 
     let user: u64 = parts[1].parse().unwrap();
@@ -30,7 +29,7 @@ fn read_cpu() -> (u64, u64) {
     (busy, total)
 }
 
-fn get_battery(battery: &PathObj) -> f64 {
+fn get_battery(battery: &PathArg) -> f64 {
     let energy_now = fs::read_to_string(format!("{}/energy_now", battery.path));
     let energy_full = fs::read_to_string(format!("{}/energy_full", battery.path));
 
@@ -46,7 +45,7 @@ fn get_battery(battery: &PathObj) -> f64 {
     -1f64 // should be fine?
 }
 
-fn is_charging(battery: &PathObj) -> bool {
+fn is_charging(battery: &PathArg) -> bool {
     if let Ok(status) = fs::read_to_string(format!("{}/status", battery.path)) {
         return status.trim() == "Charging";
     }
@@ -71,7 +70,7 @@ pub fn handle_cpu() {
 }
 
 pub fn handle_memory() {
-    let meminfo = fs::read_to_string("/proc/meminfo").unwrap();
+    let meminfo = fs::read_to_string("/proc/meminfo").expect("/proc/meminfo unreadable");
 
     let mut total = 0u64;
     let mut available = 0u64;
@@ -95,47 +94,43 @@ pub fn handle_memory() {
     println!("{:.0}", pct);
 }
 
-pub fn handle_disk(disk: PathObj) {
-    let output = Command::new("df")
-        .arg(disk.path)
-        .output()
-        .expect("failed to run df");
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-
-    if let Some(line) = stdout.lines().nth(1) {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() >= 5 {
-            let pct = parts[4].trim_end_matches('%');
-            println!("{}", pct);
-            return;
-        }
+pub fn handle_disk(disk: PathArg) {
+    use std::ffi::CString;
+    let path = CString::new(disk.path.as_bytes()).expect("path contains null byte");
+    let mut stat: libc::statvfs = unsafe { std::mem::zeroed() };
+    if unsafe { libc::statvfs(path.as_ptr(), &mut stat) } != 0 {
+        println!("?");
+        return;
     }
-
-    println!("?");
+    if stat.f_blocks == 0 {
+        println!("?");
+        return;
+    }
+    let used = stat.f_blocks - stat.f_bfree;
+    println!("{:.0}", used as f64 / stat.f_blocks as f64 * 100.0);
 }
 
-pub fn handle_battery(battery: PathObj) {
+pub fn handle_battery(battery: PathArg) {
     println!("{:.0}", get_battery(&battery));
 }
 
-pub fn handle_battery_icon(battery: PathObj) {
-    let icons = ['󰁻', '󰁻', '󰁼', '󰁽', '󰁾', '󰁿', '󰂀', '󰂀', '󰂂', '󰁹'];
+pub fn handle_battery_icon(battery: PathArg) {
+    let icons = ['\u{F007B}', '\u{F007B}', '\u{F007C}', '\u{F007D}', '\u{F007E}', '\u{F007F}', '\u{F0080}', '\u{F0080}', '\u{F0082}', '\u{F0079}'];
     let icon: char = {
         let pct = get_battery(&battery);
         if pct < 0.0 {
             '?'
         } else if is_charging(&battery) {
-            '󰂄'
+            '\u{F0084}'
         } else {
-            let idx = ((pct - 0.1) as usize / 10) % 10;
+            let idx = (pct as usize / 10).min(9);
             icons[idx]
         }
     };
 
     println!("{}", icon);
 }
-pub fn handle_power(battery: PathObj) {
+pub fn handle_power(battery: PathArg) {
     let p = fs::read_to_string(format!("{}/power_now", battery.path));
     match p {
         Ok(val) => {
@@ -147,14 +142,28 @@ pub fn handle_power(battery: PathObj) {
     }
 }
 
+pub fn handle_online(host: Option<&str>) {
+    use std::net::TcpStream;
+    let host = host.unwrap_or("1.1.1.1:80");
+    let reachable = TcpStream::connect_timeout(
+        &host.parse().unwrap_or("1.1.1.1:80".parse().unwrap()),
+        Duration::from_secs(1),
+    )
+    .is_ok();
+    if reachable {
+        println!("\u{F0928} "); // 󰤨
+    } else {
+        println!("\u{F092D} "); // 󰤭
+    }
+}
+
 pub fn handle_uptime() {
-    let uptime_seconds: usize = read_to_string("/proc/uptime")
-        .unwrap()
-        .split(" ")
+    let content = read_to_string("/proc/uptime").expect("/proc/uptime unreadable");
+    let uptime_seconds = content
+        .split_ascii_whitespace()
         .next()
-        .unwrap()
-        .parse::<f32>()
-        .unwrap() as usize;
+        .and_then(|s| s.parse::<f64>().ok())
+        .unwrap_or(0.0) as usize;
     let uptime_hours = (uptime_seconds / 3600) % 24;
     let uptime_days = uptime_seconds / 86400;
     let uptime_min = (uptime_seconds / 60) % 60;

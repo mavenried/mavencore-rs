@@ -12,18 +12,10 @@ fn parse_desktop(path: &Path, desktops: &[String]) -> Option<DesktopEntry> {
     let name = ini.get(section, "Name")?;
 
     // Hidden / NoDisplay
-    if ini
-        .getbool(section, "Hidden")
-        .unwrap_or(Some(false))
-        .is_some()
-    {
+    if ini.getbool(section, "Hidden").ok().flatten().unwrap_or(false) {
         return None;
     }
-    if ini
-        .getbool(section, "NoDisplay")
-        .unwrap_or(Some(false))
-        .is_some()
-    {
+    if ini.getbool(section, "NoDisplay").ok().flatten().unwrap_or(false) {
         return None;
     }
 

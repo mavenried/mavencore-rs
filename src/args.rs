@@ -1,7 +1,7 @@
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
-pub struct ProjArgs {
+pub struct Cli {
     #[clap(subcommand)]
     pub action: Action,
 }
@@ -17,17 +17,26 @@ pub enum Action {
     /// Uptime in dd:hh:mm:ss
     Uptime,
     /// Disk usage %, takes <path> eg. /
-    Disk(PathObj),
+    Disk(PathArg),
     /// Battery %, takes <battery path> eg. /sys/class/power_supply/BAT1
-    Battery(PathObj),
+    Battery(PathArg),
     /// Battery Icon, takes <battery path> eg. /sys/class/power_supply/BAT1
-    BatteryIcon(PathObj),
+    BatteryIcon(PathArg),
     /// Power consumption in Watts, takes <battery path> eg. /sys/class/power_supply/BAT1
-    Power(PathObj),
+    Power(PathArg),
+    /// List installed applications as JSON
     AppsList,
+    /// Check network reachability, optional <host:port> (default: 1.1.1.1:80)
+    Online(OnlineArgs),
 }
 
 #[derive(Debug, Args)]
-pub struct PathObj {
+pub struct OnlineArgs {
+    /// Host and port to probe, e.g. 1.1.1.1:80
+    pub host: Option<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct PathArg {
     pub path: String,
 }

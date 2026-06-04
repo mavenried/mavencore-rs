@@ -2,11 +2,11 @@ use clap::Parser;
 mod args;
 mod handlers;
 
-use args::{Action, ProjArgs};
+use args::{Action, Cli};
 use handlers::*;
 
 fn main() {
-    let args = ProjArgs::parse();
+    let args = Cli::parse();
 
     match args.action {
         Action::Listen => match std::env::var("XDG_CURRENT_DESKTOP")
@@ -36,5 +36,6 @@ fn main() {
         Action::Power(battery) => handle_power(battery),
 
         Action::AppsList => handle_apps_list(),
+        Action::Online(args) => handle_online(args.host.as_deref()),
     }
 }

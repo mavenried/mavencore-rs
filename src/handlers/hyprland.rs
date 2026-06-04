@@ -43,13 +43,13 @@ pub fn handle_hyprland() -> std::io::Result<()> {
     let mut reader = BufReader::new(socket);
     let mut state = State::default();
 
-    // active ws
     {
         let mut init = UnixStream::connect(sock.clone())?;
         let mut buf = String::new();
 
         init.write_all(b"j/activeworkspace")?;
         init.read_to_string(&mut buf)?;
+
         if let Some(ws) = buf
             .lines()
             .find_map(|l| l.trim().strip_prefix("\"id\": "))
@@ -62,15 +62,20 @@ pub fn handle_hyprland() -> std::io::Result<()> {
         }
     }
 
-    // active window title
     {
         let mut init = UnixStream::connect(sock)?;
         let mut buf = String::new();
 
-        init.write_all(b"/activewindow")?;
+        init.write_all(b"activewindow")?;
         init.read_to_string(&mut buf)?;
+
         if let Some(t) = buf.lines().find_map(|l| l.trim().strip_prefix("title: ")) {
             state.window_name = t.to_string();
+
+            if state.window_name.trim().is_empty() {
+                state.window_name = "desktop".to_string();
+            }
+
             println!("{}", serde_json::to_string(&state).unwrap())
         }
     }
