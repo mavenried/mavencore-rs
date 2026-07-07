@@ -9,23 +9,25 @@ fn main() {
     let args = Cli::parse();
 
     match args.action {
-        Action::Listen => match std::env::var("XDG_CURRENT_DESKTOP")
-            .expect("Failed to load $XDG_CURRENT_DESKTOP")
-            .to_lowercase()
-            .as_str()
-        {
-            "niri" => {
-                if let Err(e) = handle_niri() {
-                    eprintln!("{e}")
+        Action::Listen => {
+            let desktop = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_else(|_| {
+                eprintln!("mavencore: $XDG_CURRENT_DESKTOP is not set");
+                std::process::exit(1);
+            });
+            match desktop.to_lowercase().as_str() {
+                "niri" => {
+                    if let Err(e) = handle_niri() {
+                        eprintln!("{e}")
+                    }
                 }
-            }
-            "hyprland" => {
-                if let Err(e) = handle_hyprland() {
-                    eprintln!("{e}")
+                "hyprland" => {
+                    if let Err(e) = handle_hyprland() {
+                        eprintln!("{e}")
+                    }
                 }
+                compositor => eprintln!("{compositor} is not supported yet! :("),
             }
-            compositor => eprintln!("{compositor} is not supported yet! :("),
-        },
+        }
         Action::Cpu => handle_cpu(),
         Action::Memory => handle_memory(),
         Action::Uptime => handle_uptime(),

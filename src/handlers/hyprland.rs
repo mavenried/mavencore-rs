@@ -100,13 +100,14 @@ pub fn handle_hyprland() -> std::io::Result<()> {
                 println!("{}", serde_json::to_string(&state).unwrap())
             }
             "workspace" => {
-                let active_ws = data.trim().parse::<usize>().unwrap();
-                state.workspace_id = active_ws;
-                if !state.workspaces.contains(&active_ws) {
-                    state.workspaces.push(active_ws);
-                    state.workspaces.sort();
+                if let Ok(active_ws) = data.trim().parse::<usize>() {
+                    state.workspace_id = active_ws;
+                    if !state.workspaces.contains(&active_ws) {
+                        state.workspaces.push(active_ws);
+                        state.workspaces.sort();
+                    }
+                    println!("{}", serde_json::to_string(&state).unwrap())
                 }
-                println!("{}", serde_json::to_string(&state).unwrap())
             }
             _ => (),
         }

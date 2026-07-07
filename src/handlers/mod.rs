@@ -13,20 +13,20 @@ pub use niri::handle_niri;
 pub use types::State;
 
 // <-Helpers-------------------->
-fn read_cpu() -> (u64, u64) {
-    let stat = fs::read_to_string("/proc/stat").expect("/proc/stat unreadable");
-    let line = stat.lines().next().expect("empty /proc/stat");
+fn read_cpu() -> Option<(u64, u64)> {
+    let stat = fs::read_to_string("/proc/stat").ok()?;
+    let line = stat.lines().next()?;
     let parts: Vec<&str> = line.split_whitespace().collect();
 
-    let user: u64 = parts[1].parse().unwrap();
-    let nice: u64 = parts[2].parse().unwrap();
-    let system: u64 = parts[3].parse().unwrap();
-    let idle: u64 = parts[4].parse().unwrap();
+    let user: u64 = parts.get(1)?.parse().ok()?;
+    let nice: u64 = parts.get(2)?.parse().ok()?;
+    let system: u64 = parts.get(3)?.parse().ok()?;
+    let idle: u64 = parts.get(4)?.parse().ok()?;
 
     let busy = user + nice + system;
     let total = busy + idle;
 
-    (busy, total)
+    Some((busy, total))
 }
 
 fn get_battery(battery: &PathArg) -> f64 {
@@ -54,12 +54,18 @@ fn is_charging(battery: &PathArg) -> bool {
 
 // <-Handlers------------------->
 pub fn handle_cpu() {
-    let (b1, t1) = read_cpu();
+    let Some((b1, t1)) = read_cpu() else {
+        println!("?");
+        return;
+    };
     thread::sleep(Duration::from_millis(1000));
-    let (b2, t2) = read_cpu();
+    let Some((b2, t2)) = read_cpu() else {
+        println!("?");
+        return;
+    };
 
-    let db = b2 - b1;
-    let dt = t2 - t1;
+    let db = b2.saturating_sub(b1);
+    let dt = t2.saturating_sub(t1);
 
     let usage = if dt == 0 {
         0.0
@@ -70,16 +76,27 @@ pub fn handle_cpu() {
 }
 
 pub fn handle_memory() {
-    let meminfo = fs::read_to_string("/proc/meminfo").expect("/proc/meminfo unreadable");
+    let Ok(meminfo) = fs::read_to_string("/proc/meminfo") else {
+        println!("?");
+        return;
+    };
 
     let mut total = 0u64;
     let mut available = 0u64;
 
     for line in meminfo.lines() {
         if line.starts_with("MemTotal:") {
-            total = line.split_whitespace().nth(1).unwrap().parse().unwrap();
+            total = line
+                .split_whitespace()
+                .nth(1)
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(0);
         } else if line.starts_with("MemAvailable:") {
-            available = line.split_whitespace().nth(1).unwrap().parse().unwrap();
+            available = line
+                .split_whitespace()
+                .nth(1)
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(0);
         }
     }
 
@@ -88,7 +105,7 @@ pub fn handle_memory() {
         return;
     }
 
-    let used = total - available;
+    let used = total.saturating_sub(available);
     let pct = used as f64 / total as f64 * 100.0;
 
     println!("{:.0}", pct);
@@ -96,7 +113,10 @@ pub fn handle_memory() {
 
 pub fn handle_disk(disk: PathArg) {
     use std::ffi::CString;
-    let path = CString::new(disk.path.as_bytes()).expect("path contains null byte");
+    let Ok(path) = CString::new(disk.path.as_bytes()) else {
+        println!("?");
+        return;
+    };
     let mut stat: libc::statvfs = unsafe { std::mem::zeroed() };
     if unsafe { libc::statvfs(path.as_ptr(), &mut stat) } != 0 {
         println!("?");
@@ -158,7 +178,10 @@ pub fn handle_online(host: Option<&str>) {
 }
 
 pub fn handle_uptime() {
-    let content = read_to_string("/proc/uptime").expect("/proc/uptime unreadable");
+    let Ok(content) = read_to_string("/proc/uptime") else {
+        println!("?");
+        return;
+    };
     let uptime_seconds = content
         .split_ascii_whitespace()
         .next()

@@ -13,19 +13,18 @@ impl From<&EventStreamState> for State {
                 .iter()
                 .map(|ws| *ws.0 as usize)
                 .collect(),
-            workspace_id: *value
+            workspace_id: value
                 .workspaces
                 .workspaces
                 .iter()
                 .find(|ws| ws.1.is_active)
-                .unwrap()
-                .0 as usize,
+                .map(|ws| *ws.0 as usize)
+                .unwrap_or(0),
             window_name: {
                 let window = value.windows.windows.iter().find(|win| win.1.is_focused);
-                if let Some(win) = window {
-                    win.1.title.clone().unwrap()
-                } else {
-                    String::from("desktop")
+                match window {
+                    Some(win) => win.1.title.clone().unwrap_or_else(|| String::from("desktop")),
+                    None => String::from("desktop"),
                 }
             },
         };
