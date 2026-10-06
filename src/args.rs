@@ -28,7 +28,7 @@ pub enum Action {
     AppsList,
     /// Check network reachability, optional <host:port> (default: 1.1.1.1:80)
     Online(OnlineArgs),
-    /// Lookup Something on wictionary.
+    /// Lookup Something on wiktionary.
     Dict(StringArg),
 }
 
