@@ -39,5 +39,7 @@ fn main() {
 
         Action::AppsList => handle_apps_list(),
         Action::Online(args) => handle_online(args.host.as_deref()),
+
+        Action::Dict(word) => handle_dict(word),
     }
 }

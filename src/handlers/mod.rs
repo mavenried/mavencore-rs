@@ -4,10 +4,13 @@ use std::{fs, thread, time::Duration};
 
 // <-Modules-------------------->
 mod apps_list;
+mod dict;
 mod hyprland;
 mod niri;
 mod types;
+
 pub use apps_list::handle_apps_list;
+pub use dict::handle_dict;
 pub use hyprland::handle_hyprland;
 pub use niri::handle_niri;
 pub use types::State;
@@ -135,7 +138,18 @@ pub fn handle_battery(battery: PathArg) {
 }
 
 pub fn handle_battery_icon(battery: PathArg) {
-    let icons = ['\u{F007B}', '\u{F007B}', '\u{F007C}', '\u{F007D}', '\u{F007E}', '\u{F007F}', '\u{F0080}', '\u{F0080}', '\u{F0082}', '\u{F0079}'];
+    let icons = [
+        '\u{F007B}',
+        '\u{F007B}',
+        '\u{F007C}',
+        '\u{F007D}',
+        '\u{F007E}',
+        '\u{F007F}',
+        '\u{F0080}',
+        '\u{F0080}',
+        '\u{F0082}',
+        '\u{F0079}',
+    ];
     let icon: char = {
         let pct = get_battery(&battery);
         if pct < 0.0 {

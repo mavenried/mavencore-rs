@@ -28,15 +28,21 @@ pub enum Action {
     AppsList,
     /// Check network reachability, optional <host:port> (default: 1.1.1.1:80)
     Online(OnlineArgs),
+    /// Lookup Something on wictionary.
+    Dict(StringArg),
 }
 
 #[derive(Debug, Args)]
 pub struct OnlineArgs {
-    /// Host and port to probe, e.g. 1.1.1.1:80
     pub host: Option<String>,
 }
 
 #[derive(Debug, Args)]
 pub struct PathArg {
     pub path: String,
+}
+
+#[derive(Debug, Args)]
+pub struct StringArg {
+    pub value: String,
 }
