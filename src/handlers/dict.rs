@@ -37,7 +37,7 @@ fn lookup(word: &str) -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    println!("<h3>{}</h3>", escape_html(word));
+    println!("<h2>{}</h2>", escape_html(word));
 
     for entry in entries {
         if !entry.part_or_speech.is_empty() {
@@ -54,21 +54,23 @@ fn lookup(word: &str) -> Result<(), Box<dyn std::error::Error>> {
             }
 
             print!("<li>{}", escape_html(&definition_text));
-            print!("<blockquote><ul>");
-            for example in &definition.examples {
-                let example_text = clean(&example.example);
-                if !example_text.is_empty() {
-                    print!("<li><i>{}</i></li>", escape_html(&example_text));
-                }
+            if !definition.examples.is_empty() {
+                print!("<blockquote><ul>");
+                for example in &definition.examples {
+                    let example_text = clean(&example.example);
+                    if !example_text.is_empty() {
+                        print!("<li><i>{}</i></li>", escape_html(&example_text));
+                    }
 
-                if let Some(translation) = &example.translation {
-                    let translation_text = clean(translation);
-                    if !translation_text.is_empty() {
-                        print!("<br>{}", escape_html(&translation_text));
+                    if let Some(translation) = &example.translation {
+                        let translation_text = clean(translation);
+                        if !translation_text.is_empty() {
+                            print!("<br>{}", escape_html(&translation_text));
+                        }
                     }
                 }
+                println!("</ul></blockquote></li>");
             }
-            println!("</blockquote></ul></li>");
         }
         println!("</ol>");
 
