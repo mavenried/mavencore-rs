@@ -1,5 +1,5 @@
 <h1 align="center">mavencore-rs</h1>
-<p align="center">The Rust backend for <a src="https://github.com/mavenried/mavencore-shell"><code>mavencore-shell</code></a> </p>
+<p align="center">The Rust backend for <a href="https://github.com/mavenried/mavencore-shell"><code>mavencore-shell</code></a></p>
 <hr>
 
 `mavencore` provides the system data and compositor events that mavencore-shell's Quickshell components consume. The shell invokes it as a subprocess for status-bar readings, battery details, installed applications, dictionary lookups, and live workspace/window state.
